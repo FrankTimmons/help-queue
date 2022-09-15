@@ -2,6 +2,7 @@ import React from "react";
 import { v4 } from 'uuid';
 import PropTypes from "prop-types"; 
 import ReusableForm from "./ReusableForm";
+import { formatDistanceToNow } from 'date-fns';
 
 function NewTicketForm(props){
 
@@ -14,8 +15,12 @@ function NewTicketForm(props){
         names: event.target.names.value, 
         location: event.target.location.value, 
         issue: event.target.issue.value, 
-        // We use uuid to give the ticket an id that is a random 32 character string.
+        timeOpen: new Date(),
+        formattedWaitTime: formatDistanceToNow(new Date(), {
+          addSuffix: true
+        }),
         id: v4()
+       // We use uuid to give the ticket an id that is a random 32 character string.
       }
     );
   }

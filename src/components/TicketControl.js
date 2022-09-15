@@ -5,6 +5,8 @@ import TicketDetail from './TicketDetail';
 import EditTicketForm from './EditTicketForm';
 import { connect } from 'react-redux';
 import PropTypes from "prop-types";
+import * as actions from '../actions/index'; 
+import { formatDistanceToNow } from 'date-fns';
 
 class TicketControl extends React.Component {
 
@@ -20,7 +22,29 @@ class TicketControl extends React.Component {
       editing: false
     };
   }
-  // When we execute this function we toggle the boolean formVisibleOnPage.  This will decide whether or not we will show the form, or the list.
+
+  componentDidMount() {
+    console.log("component mounted!");
+    this.waitTimeUpdateTimer = setInterval(() =>
+      this.updateTicketElapsedWaitTime(),
+    60000
+    );
+  }
+
+  componentWillUnmount(){
+    clearInterval(this.waitTimeUpdateTimer);
+  }
+
+  updateTicketElapsedWaitTime = () => {
+    const { dispatch } = this.props;
+    Object.values(this.props.mainTicketList).forEach(ticket => {
+      const newFormattedWaitTime = formatDistanceToNow(ticket.timeOpen, {
+        addSuffix: true
+      });
+      const action = actions.updateTime(ticket.id, newFormattedWaitTime);
+      dispatch(action);
+    });
+  }
 
   handleClick = () => {
     if (this.state.selectedTicket != null) {
@@ -30,28 +54,16 @@ class TicketControl extends React.Component {
       });
     } else {
       const { dispatch } = this.props;
-      const action = {
-        type: 'TOGGLE_FORM'
-      }
+      const action = actions.toggleForm();
       dispatch(action);
     }
   }
 
   handleAddingNewTicketToList = (newTicket) => {
     const { dispatch } = this.props;
-    console.log(this);
-    const { id, names, location, issue } = newTicket;
-    const action = {
-      type: 'ADD_TICKET',
-      id: id,
-      names: names,
-      location: location,
-      issue: issue,
-    }
+    const action = actions.addTicket(newTicket);
     dispatch(action);
-    const action2 = {
-      type: 'TOGGLE_FORM'
-    }
+    const action2 = actions.toggleForm();
     dispatch(action2);
   }
 
@@ -62,10 +74,7 @@ class TicketControl extends React.Component {
 
   handleDeletingTicket = (id) => {
     const { dispatch } = this.props;
-    const action = {
-      type: 'DELETE_TICKET',
-      id: id
-    }
+    const action = actions.deleteTicket(id)
     dispatch(action);
     this.setState({selectedTicket: null});
   }
@@ -77,14 +86,7 @@ class TicketControl extends React.Component {
 
   handleEditingTicketInList = (ticketToEdit) => {
     const { dispatch } = this.props;
-    const { id, names, location, issue } = ticketToEdit;
-    const action = {
-      type: 'ADD_TICKET',
-      id: id,
-      names: names,
-      location: location,
-      issue: issue,
-    }
+    const action = actions.addTicket(ticketToEdit)
     dispatch(action);
     this.setState({
       editing: false,
